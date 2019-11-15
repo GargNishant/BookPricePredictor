@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Tue Nov 12 21:47:58 2019
 
@@ -18,15 +16,29 @@ dataset_test = pd.read_excel("Data_Test.xlsx").iloc[:,1:]
 """ Cleaning the Reviews Column. This can be done by only taking the 
 1st word. The 1st Word contains the number like 4.0, 4.9. Thus making it
 suitable to change to numbers"""
-def convert_ratings(dataset):
-    ratings_list = list(dataset["Reviews"])
-    rating = []
-    for item in ratings_list:
-        rating.append(float(item.split()[0]))
-    dataset["Reviews"] = rating
+def convert_review(dataset):
+    review_list = list(dataset["Reviews"])
+    review = []
+    for item in review_list:
+        review.append(float(item.split()[0]))
+    dataset["Reviews"] = review
     
-convert_ratings(dataset_train)
-convert_ratings(dataset_test)
+convert_review(dataset_train)
+convert_review(dataset_test)
+
+
+""" Rating Column"""
+def conver_rating(dataset):
+    rating_list = list(dataset["Ratings"])
+    rating = []
+    for item in rating_list:
+        rating.append(float((item.split()[0]).replace(",","")))
+    dataset["Ratings"] = rating
+
+conver_rating(dataset_train)
+conver_rating(dataset_test)
+
+dataset_train.describe()
 
 
 def get_max_authors():
@@ -57,6 +69,8 @@ we would fill them by splitting from original Authors Column """
 #Finding the maximum number of Authors worked on 1 book
 max_authors = get_max_authors()
 
+all_authors = []
+
 def cleanup_authors(dataset,auth_index):
     authors_list = list(dataset["Author"])
     
@@ -68,6 +82,7 @@ def cleanup_authors(dataset,auth_index):
         
         for i in range(len_auth):
             dataset.iloc[index,auth_index+i] = authors[i]
+            all_authors.append(authors[i].strip().lower())
     dataset.drop(["Author"],axis = 1, inplace = True)
 
 
@@ -86,5 +101,20 @@ dataset_test["Author5"] = None
 dataset_test["Author6"] = None
 dataset_test["Author7"] = None
 
+
 cleanup_authors(dataset_train,8)
 cleanup_authors(dataset_test,7)
+
+
+#There are total of 7797 books combined from Train and Test Data
+#There are only 4710 Unique Authors present.
+#1233 Authors have written atleast 2 or more books
+#3477 Authors have written only 1 Book
+df = pd.DataFrame(all_authors,columns = ['Author'])
+duplicateRowsDF = df[df.duplicated(['Author'])]
+authors_book_count = pd.DataFrame(columns=["Author", "Count"])
+authors_book_count["Author"] = df.Author.unique()
+authors_book_count["Count"] = df.Author.value_counts(sort=True).tolist()
+
+
+dataset_train.BookCategory.value_counts()
